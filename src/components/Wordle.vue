@@ -1,6 +1,7 @@
 <script>
 import { Fragment, onBeforeUnmount, onMounted, ref } from "vue";
 import Hammer from "hammerjs";
+import toast from "../utils/toast";
 
 export default {
   setup() {
@@ -39,6 +40,7 @@ export default {
     // Make a deep copy of initial gameboard
     const gameRows = ref(JSON.parse(JSON.stringify(gameBoard)));
 
+    // Initialize all other reactive variables
     const dictionary = ref([]);
     const rowIndex = ref(0);
     const letterIndex = ref(0);
@@ -47,8 +49,8 @@ export default {
     const played = ref(0);
     const won = ref(0);
 
-    // Handles the click event on the keyboard to add letters to the game board
-    function handleAddLetter(letter) {
+    // Main Game Function, handles all input from user to run Wordle
+    function game(letter) {
 
       // Find the first available row
       const row = gameRows.value[rowIndex.value];
@@ -56,7 +58,7 @@ export default {
       // Check if the row is complete
       const isComplete = row.letters.every((letter) => letter !== " ");
 
-      // On BACKSPACE, if index is not the first letter, delete the letter
+      // On BACKSPACE, Remove a letter
       if (letter === "BACKSPACE") {
         if (letterIndex.value !== 0) {
           letterIndex.value--;
@@ -66,7 +68,7 @@ export default {
         return;
       }
 
-      // Add the letter to the next available slot in row
+      // Add the next letter to the next available slot
       if (letterIndex.value <= 4 && letter !== "ENTER") {
         row.letters[letterIndex.value] = letter;
         row.color[letterIndex.value] = "pending";
@@ -74,17 +76,17 @@ export default {
         return;
       }
 
-      // If not complete and user is trying to enter a word, show error
+      // If row is not complete and user is trying to ENTER a word, show error
       if (letter === "ENTER" && !isComplete) {
         row.isValidInput = false;
         setTimeout(() => {
           row.isValidInput = true;
         }, 400);
-        showToast("Not enough letters");
+        toast("Not enough letters");
         return;
       }
 
-      // Check if word is in dictionary.txt
+      // Check if word is in dictionary.txt, show error if not
       if (
         letter === "ENTER" &&
         isComplete &&
@@ -94,19 +96,24 @@ export default {
         setTimeout(() => {
           row.isValidInput = true;
         }, 400);
-        showToast("Not in word list");
+        toast("Not in word list");
         return;
       }
 
-      // If all slots are full and ENTER is pressed, submit the word
+      // If input is valid and ENTER is pressed, Submit the word
       if (letter === "ENTER" && isComplete) {
+        checkEndgame(row);
+      }
+    }
 
-        // Remove the keydown event listener while revealing letters
-        document.removeEventListener("keydown", handleKeyDown);
+    function animateReveal(row) {
+      return new Promise(resolve => {
+
+       // Remove the keydown event listener while revealing letters
+       document.removeEventListener("keydown", handleKeyDown);
         const solutionLetters = solution.value.split("");
 
-        // If letter already in right spot, don't color next instances yellow - keep track of unsolved letters
-        // Create a table of available letters
+        // Create a table of available letters to keep track of unsolved letters
         const availableLetters = {};
         solutionLetters.map((letter) => {
           if (!availableLetters[letter]) {
@@ -126,9 +133,10 @@ export default {
               availableLetters[char]--;
             }
           }
-          // console.log(availableLetters);
         }
-        let index = 0;
+
+      // Animate each letter using an interval
+      let index = 0;
         const interval = setInterval(() => {
           const animationLetter = row.letters[index];
 
@@ -166,36 +174,42 @@ export default {
           index++;
           if (index === 5) {
             clearInterval(interval);
-            rowIndex.value++;
-            letterIndex.value = 0;
-
-            // If user gets the solution correct, end the game with a win
-            if (solution.value === row.letters.join("")) {
-              setTimeout(() => {
-                endGame("win");
-              }, 500);
-
-            // If user runs out of guesses, end the game with a loss
-            } else if (rowIndex.value === 5) {
-              setTimeout(() => {
-                endGame("lose");
-              }, 500);
-
-            // Else keep going with the game
-            } else {
-              document.addEventListener("keydown", handleKeyDown);
-            }
+            resolve();
           }
         }, 300);
+      })
+    }
+
+    async function checkEndgame(row, solutionLetters, availableLetters) {
+
+      // Wait for animation to finish
+      await animateReveal(row, solutionLetters, availableLetters)
+
+      // If user gets the solution correct, end the game with a win
+      if (solution.value === row.letters.join("")) {
+        setTimeout(() => {
+          endGame("win");
+          return;
+        }, 500);
+
+      // If user runs out of guesses, end the game with a loss
+      } else if (rowIndex.value === 4) {
+        setTimeout(() => {
+          endGame("lose");
+          return
+        }, 500);
+
+      // Else keep going with the game
+      } else {
+        setTimeout(() => {
+          rowIndex.value++;
+          letterIndex.value = 0;
+          document.addEventListener("keydown", handleKeyDown);
+        }, 500);
       }
     }
 
-    // Handle click on keyboard the same as pressing it on the keyboard
-    function handleClick(char) {
-      handleAddLetter(char);
-    }
-
-    // If the user presses a key on the keyboard, pass it to handleClick
+    // Handle user input from keyboard
     function handleKeyDown(event) {
 
       // Identify the key pressed
@@ -207,42 +221,16 @@ export default {
         keyboard.middleRow.includes(letter) ||
         keyboard.bottomRow.includes(letter)
       ) {
-        handleAddLetter(letter);
+        game(letter);
       }
 
       // Check if the key is Backspace or Enter
       if (letter === "BACKSPACE" || letter === "ENTER") {
-        handleAddLetter(letter);
+        game(letter);
       }
     }
-    function showToast(message, time = 1500) {
-      const toast = document.createElement("div");
-      toast.innerText = message;
-      toast.style.position = "absolute";
-      toast.style.top = "30%";
-      toast.style.left = "50%";
-      toast.style.transform = "translate(-50%, -50%)";
-      toast.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-      toast.style.color = "white";
-      toast.style.padding = "10px";
-      toast.style.borderRadius = "5px";
-      toast.style.zIndex = "9999";
-      toast.style.userSelect = "none";
-      document.body.appendChild(toast);
-      toast.addEventListener("click", () => {
-        toast.style.animation = "fade-out 0.4s";
-        toast.addEventListener("animationend", () => {
-          toast.remove();
-        });
-      });
-      setTimeout(() => {
-        toast.style.animation = "fade-out 0.4s";
-        toast.addEventListener("animationend", () => {
-          toast.remove();
-        });
-      }, time);
-    }
 
+    // Picks a random word from the Wordle word list
     function pickRandomWord() {
       // Load Wordle List
       fetch("./words.txt")
@@ -255,6 +243,7 @@ export default {
         });
     }
 
+    // Handles the end of the game messages & reset
     function endGame(result) {
       let message;
       played.value++;
@@ -266,7 +255,7 @@ export default {
         message = `The word was: ${solution.value}! You've won ${won.value} out of ${played.value} games! (${(won.value / played.value * 100).toFixed(2)}%)`
       }
 
-      showToast(message, 3000);
+      toast(message, 3000);
       setTimeout(() => {
         gameRows.value = JSON.parse(JSON.stringify(gameBoard));
         keyboardColors.value = {};
@@ -277,6 +266,7 @@ export default {
       }, 4000);
     }
 
+    /* -- Lifecycle Hooks -- */
     onMounted(async () => {
       // Load Wordle List
       pickRandomWord();
@@ -306,7 +296,6 @@ export default {
     });
 
     onBeforeUnmount(() => {
-
       // Remove event listener for keydown
       document.removeEventListener("keydown", handleKeyDown);
     });
@@ -320,13 +309,11 @@ export default {
       keyboardColors,
       gameRows,
       handleKeyDown,
-      handleClick,
       played,
       won,
       alert
     };
   },
-  components: { Fragment },
 };
 </script>
 
@@ -378,7 +365,7 @@ export default {
           :key="char"
           :class="keyboardColors[char]"
           class="keyboard-key m-[3px] p-1.5 py-2.5 px-2.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
-          @click="handleClick(char)"
+          @click="game(char)"
         >
           {{ char }}
         </button>
@@ -389,7 +376,7 @@ export default {
           :key="char"
           :class="keyboardColors[char]"
           class="keyboard-key m-[3px] p-1.5 py-2.5 px-2.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
-          @click="handleClick(char)"
+          @click="game(char)"
         >
           {{ char }}
         </button>
@@ -397,7 +384,7 @@ export default {
       <div class="flex flex-row justify-center">
         <button
           class="keyboard-key m-[3px] p-1.5 py-2.5 px-1.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
-          @click="handleClick('BACKSPACE')"
+          @click="game('BACKSPACE')"
         >
           <svg
             xmlns="http
@@ -417,13 +404,13 @@ export default {
           :key="char"
           :class="keyboardColors[char]"
           class="keyboard-key m-[3px] p-1.5 py-2.5 px-2.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
-          @click="handleClick(char)"
+          @click="game(char)"
         >
           {{ char }}
         </button>
         <button
           class="keyboard-key m-[3px] p-1.5 py-2.5 px-2.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
-          @click="handleClick('ENTER')"
+          @click="game('ENTER')"
         >
           ENTER
         </button>
