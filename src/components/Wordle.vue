@@ -1,7 +1,6 @@
 <script>
 import { Fragment, onBeforeUnmount, onMounted, ref } from "vue";
 import Hammer from "hammerjs";
-import click from "../assets/click.mp3";
 
 export default {
   setup() {
