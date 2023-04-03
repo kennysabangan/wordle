@@ -3,7 +3,7 @@ import Wordle from './components/Wordle.vue'
 </script>
 
 <template>
-  <Wordle  />
+  <Wordle />
 </template>
 
 

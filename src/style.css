@@ -24,3 +24,8 @@ body {
   @apply bg-slate-800;
   width: 100%;
 }
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
