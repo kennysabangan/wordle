@@ -1,6 +1,5 @@
 <script>
 import { Fragment, onBeforeUnmount, onMounted, ref } from "vue";
-import click from "../assets/click.mp3";
 
 export default {
   setup() {
@@ -47,14 +46,6 @@ export default {
     const played = ref(0);
     const won = ref(0);
 
-    const clickSound = new Audio(click);
-    clickSound.preload = 'auto';
-
-    const playAudio = (audio) => {
-      audio.currentTime = 0;
-      audio.play();
-    };
-
     // Handles the click event on the keyboard to add letters to the game board
     function handleAddLetter(letter) {
 
@@ -79,7 +70,6 @@ export default {
         row.letters[letterIndex.value] = letter;
         row.color[letterIndex.value] = "pending";
         letterIndex.value++;
-        playAudio(clickSound);
         return;
       }
 
