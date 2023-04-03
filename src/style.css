@@ -14,15 +14,15 @@
 
 body {
   margin: 0;
-  display: flex;
-  justify-content: center;
-  min-width: 320px;
-  min-height: 100vh;
+  padding: 0;
+  overflow: hidden;
+  touch-action: manipulation;
 }
 
 #app {
   @apply bg-slate-800;
-  width: 100%;
+  height: 100vh;
+  min-width: 100vw;
 }
 
 @keyframes fade-out {

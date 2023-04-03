@@ -1,5 +1,6 @@
 <script>
 import { Fragment, onBeforeUnmount, onMounted, ref } from "vue";
+import Hammer from "hammerjs";
 import click from "../assets/click.mp3";
 
 export default {
@@ -290,16 +291,30 @@ export default {
       // Load Wordle List
       pickRandomWord();
 
-        // Load large dictionary of 5-letter words
+      // Load large dictionary of 5-letter words
       fetch("./dictionary.txt")
         .then((res) => res.text())
         .then((text) => {
           dictionary.value = text.replace(/\r/g, "").split("\n");
         });
 
-        // Add event listener for keydown
+      // Add event listener for keydown
       document.addEventListener("keydown", handleKeyDown);
+
+      // Disable double tapping to zoom for mobile devices
+      const el = document.querySelector('body');
+      const hammer = new Hammer.Manager(el);
+      const doubleTap = new Hammer.Tap({
+        event: 'doubletap',
+        taps: 2,
+      });
+
+      hammer.add(doubleTap);
+      hammer.on('doubletap', (e) => {
+        e.preventDefault();
+      });
     });
+
     onBeforeUnmount(() => {
 
       // Remove event listener for keydown
@@ -326,10 +341,10 @@ export default {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col justify-center items-center">
+  <div class="max-h-full min-h-full flex flex-col justify-center items-center">
   <!-- App Header -->
     <div
-      class="mx-auto flex justify-between w-[80%] max-w-[80%] sm:max-w-lg md:max-w-xl px-4 sm:px-8 bg-gray-700 py-4 rounded-xl bg-opacity-60"
+      class="-mt-12 lg:mt-0 mx-auto flex justify-between w-[80%] max-w-[80%] sm:max-w-lg md:max-w-xl px-4 sm:px-8 bg-gray-700 py-4 rounded-xl bg-opacity-60"
     >
       <button @click="alert('the cake is a lie')">
         <font-awesome-icon icon="fa-solid fa-circle-question" class="text-xl lg:text-2xl" />
@@ -372,7 +387,7 @@ export default {
           v-for="char in keyboard.topRow"
           :key="char"
           :class="keyboardColors[char]"
-          class="keyboard-key m-[3px] p-1.5 px-2.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
+          class="keyboard-key m-[3px] p-1.5 py-2.5 px-2.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
           @click="handleClick(char)"
         >
           {{ char }}
@@ -383,7 +398,7 @@ export default {
           v-for="char in keyboard.middleRow"
           :key="char"
           :class="keyboardColors[char]"
-          class="keyboard-key m-[3px] p-1.5 px-2.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
+          class="keyboard-key m-[3px] p-1.5 py-2.5 px-2.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
           @click="handleClick(char)"
         >
           {{ char }}
@@ -391,7 +406,7 @@ export default {
       </div>
       <div class="flex flex-row justify-center">
         <button
-          class="keyboard-key m-[3px] p-1.5 px-1.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
+          class="keyboard-key m-[3px] p-1.5 py-2.5 px-1.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
           @click="handleClick('BACKSPACE')"
         >
           <svg
@@ -411,13 +426,13 @@ export default {
           v-for="char in keyboard.bottomRow"
           :key="char"
           :class="keyboardColors[char]"
-          class="keyboard-key m-[3px] p-1.5 px-2.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
+          class="keyboard-key m-[3px] p-1.5 py-2.5 px-2.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
           @click="handleClick(char)"
         >
           {{ char }}
         </button>
         <button
-          class="keyboard-key m-[3px] p-1.5 px-2.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
+          class="keyboard-key m-[3px] p-1.5 py-2.5 px-2.5 sm:p-4 sm:py-2.5 sm:m-[4px] text-xs sm:text-base focus:outline-none focus:shadow-outline"
           @click="handleClick('ENTER')"
         >
           ENTER
