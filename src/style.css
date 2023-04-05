@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 :root {
+  --color-right: #2aaa64;
+  --color-wrong: #c9b458e9;
+  --colorblind-right: #1A85FFd0;
+  --colorblind-wrong: #D41159c0;
+
   color: white;
   font-family: Roboto, sans-serif;
   font-synthesis: none;
