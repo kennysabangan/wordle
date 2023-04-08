@@ -359,7 +359,7 @@
   <div class="max-h-full min-h-full flex flex-col justify-center items-center">
   <!-- App Header -->
     <div
-      class="-mt-12 lg:mt-0 mx-auto flex justify-between w-[80%] max-w-[80%] sm:max-w-lg md:max-w-xl px-4 sm:px-8 bg-gray-700 py-4 rounded-xl bg-opacity-60"
+      class="-mt-12 md:mt-0 lg:mt-2 mx-auto flex justify-between w-[80%] max-w-[80%] sm:max-w-lg md:max-w-xl px-4 sm:px-8 bg-gray-700 py-4 rounded-xl bg-opacity-60"
     >
       <!-- Help Button -->
       <Menu as="div" class="relative">
@@ -459,7 +459,7 @@
 
     <!-- Wordle Game Board -->
     <div class="flex flex-col items-center">
-      <div class="flex flex-col my-10">
+      <div class="flex flex-col my-4">
         <div
           v-for="(row, index) in gameRows"
           :key="index"
@@ -482,7 +482,7 @@
 
     <!-- Keyboard -->
     <div
-      class="flex flex-col bg-gray-700 bg-opacity-50 rounded-2xl py-4 px-2 sm:px-6"
+      class="flex flex-col bg-gray-700 bg-opacity-50 rounded-2xl py-4 px-2 sm:px-4"
     >
       <div class="flex flex-row justify-center">
         <button
