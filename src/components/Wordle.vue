@@ -11,38 +11,6 @@
     middleRow: ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
     bottomRow: ["Z", "X", "C", "V", "B", "N", "M"],
   };
-  const gameBoard = [
-    {
-      letters: [" ", " ", " ", " ", " "],
-      color: ["empty", "empty", "empty", "empty", "empty"],
-      isValidInput: true,
-    },
-    {
-      letters: [" ", " ", " ", " ", " "],
-      color: ["empty", "empty", "empty", "empty", "empty"],
-      isValidInput: true,
-    },
-    {
-      letters: [" ", " ", " ", " ", " "],
-      color: ["empty", "empty", "empty", "empty", "empty"],
-      isValidInput: true,
-    },
-    {
-      letters: [" ", " ", " ", " ", " "],
-      color: ["empty", "empty", "empty", "empty", "empty"],
-      isValidInput: true,
-    },
-    {
-      letters: [" ", " ", " ", " ", " "],
-      color: ["empty", "empty", "empty", "empty", "empty"],
-      isValidInput: true,
-    },
-    {
-      letters: [" ", " ", " ", " ", " "],
-      color: ["empty", "empty", "empty", "empty", "empty"],
-      isValidInput: true,
-    },
-  ];
 
   // Initialize all other reactive variables
   const dictionary = ref([]);
@@ -54,6 +22,7 @@
   const played = ref(0);
   const won = ref(0);
   const thinhMode = ref(false);
+  const animationFinished = ref(true);
 
   function createNewBoard() {
     return [
@@ -158,6 +127,7 @@
 
     // If input is valid and ENTER is pressed, Submit the word
     if (letter === "ENTER" && isComplete) {
+      document.removeEventListener("keydown", handleKeyDown);
       checkEndgame(row);
     }
   }
@@ -166,7 +136,6 @@
     return new Promise(resolve => {
 
       // Remove the keydown event listener while revealing letters
-      document.removeEventListener("keydown", handleKeyDown);
       const solutionLetters = solution.value.split("");
 
       // Create a table of available letters to keep track of unsolved letters
@@ -193,6 +162,8 @@
 
     // Animate each letter using an interval
     let index = 0;
+    animationFinished.value = false;
+    console.log(animationFinished.value);
       const interval = setInterval(() => {
         const animationLetter = row.letters[index];
 
@@ -257,11 +228,12 @@
 
     // Else keep going with the game
     } else {
-      setTimeout(() => {
+      if (!animationFinished.value) {
+        animationFinished.value = true;
         rowIndex.value++;
         letterIndex.value = 0;
         document.addEventListener("keydown", handleKeyDown);
-      }, 500);
+      }
     }
   }
 
